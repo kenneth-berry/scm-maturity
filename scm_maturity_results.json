@@ -1,0 +1,26 @@
+{
+  "overall_score": 2.87,
+  "maturity_level": "INTEGRATED",
+  "category_scores": {
+    "Planning": 3.21,
+    "Procurement": 2.78,
+    "Logistics": 3.2,
+    "Order-to-Cash": 2.53,
+    "Technology": 2.47,
+    "ESG & Compliance": 3.0
+  },
+  "recommendations": [
+    "Upgrade to integrated ERP/SCM systems with advanced analytics and dashboards",
+    "Establish inventory optimization with safety stock management and automated replenishment",
+    "Digitize procurement processes and establish supplier performance scorecards",
+    "Implement predictive analytics and supplier collaboration programs"
+  ],
+  "consulting_package": {
+    "package": "Advisory",
+    "description": "Cross-functional integration, S&OP implementation, ERP/WMS guidance, ESG baseline",
+    "scope": "Integrated planning, supplier scorecards, digital tools advisory, ESG framework",
+    "outcome": "Move from functional silos to integrated, data-driven supply chain",
+    "duration": "6-12 weeks",
+    "price_range": "$15,000 - $35,000"
+  }
+}

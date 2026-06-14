@@ -1,0 +1,2319 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Berry Consulting Supply Chain Maturity Assessment</title>
+    <!-- Chart.js for dashboard visualizations -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-gauge@0.3.0/dist/chartjs-gauge.min.js"></script>
+    <!-- jsPDF for PDF generation -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <!-- SheetJS for Excel export -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <!-- BerryPay Integration -->
+    <script src="berrypay_api.js"></script>
+    <script src="payment_integration.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            /* Additional content protection */
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+        }
+
+        /* Disable text selection for all elements */
+        ::selection {
+            background: transparent;
+        }
+        
+        ::-moz-selection {
+            background: transparent;
+        }
+
+        /* Disable highlighting on mobile */
+        * {
+            -webkit-touch-callout: none;
+            -webkit-tap-highlight-color: rgba(0,0,0,0);
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            /* Content protection */
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+            -webkit-touch-callout: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* Watermark protection */
+        .container::before {
+            content: "© Berry Consulting Supply Chain Maturity Assessment - Proprietary Content";
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) rotate(-45deg);
+            font-size: 24px;
+            color: rgba(0,0,0,0.03);
+            white-space: nowrap;
+            pointer-events: none;
+            z-index: 1;
+            font-weight: bold;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #2c3e50 0%, #3498db 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+            position: relative;
+            z-index: 2;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .content {
+            padding: 30px;
+            position: relative;
+            z-index: 2;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #ecf0f1;
+            border-radius: 4px;
+            margin-bottom: 30px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #27ae60, #2ecc71);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        .question-card {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 25px;
+            margin-bottom: 20px;
+            border-left: 4px solid #3498db;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+
+        .question-category {
+            color: #3498db;
+            font-weight: bold;
+            font-size: 0.9em;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 10px;
+        }
+
+        .question-text {
+            font-size: 1.1em;
+            color: #2c3e50;
+            margin-bottom: 15px;
+            line-height: 1.5;
+        }
+
+        .scoring-options {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-top: 15px;
+        }
+
+        .scoring-option {
+            padding: 15px 20px;
+            background: #f8f9fa;
+            border: 2px solid #ecf0f1;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .scoring-option:hover {
+            border-color: #3498db;
+            background: #f0f7ff;
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(52, 152, 219, 0.1);
+        }
+
+        .scoring-option.selected {
+            border-color: #3498db;
+            background: #e8f4ff;
+            box-shadow: 0 4px 12px rgba(52, 152, 219, 0.2);
+        }
+
+        .scoring-option.selected::before {
+            content: "✓";
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            background: #27ae60;
+            color: white;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        .score-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 8px;
+            gap: 12px;
+        }
+
+        .footer {
+            background: #2c3e50;
+            color: white;
+            text-align: center;
+            padding: 20px;
+            font-size: 12px;
+            position: relative;
+            z-index: 2;
+        }
+
+        .footer p {
+            margin: 5px 0;
+        }
+
+        .footer small {
+            opacity: 0.8;
+        }
+
+        /* Dashboard and Report Styles */
+        .dashboard {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin: 30px 0;
+        }
+
+        .chart-container {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+
+        .chart-container h3 {
+            margin-bottom: 20px;
+            color: #2c3e50;
+        }
+
+        .gauge-container {
+            position: relative;
+            width: 300px;
+            height: 200px;
+            margin: 0 auto;
+        }
+
+        .radar-container {
+            position: relative;
+            width: 100%;
+            height: 300px;
+        }
+
+        .upgrade-cta {
+            background: linear-gradient(135deg, #f39c12, #e74c3c);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            margin: 20px 0;
+            box-shadow: 0 4px 15px rgba(231, 76, 60, 0.3);
+        }
+
+        .upgrade-cta h3 {
+            margin-bottom: 10px;
+        }
+
+        .upgrade-cta p {
+            margin-bottom: 15px;
+            opacity: 0.9;
+        }
+
+        .report-section {
+            background: white;
+            margin: 20px 0;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .report-section h2 {
+            color: #2c3e50;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+
+        .insights-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .insight-card {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            border-left: 4px solid #3498db;
+        }
+
+        .insight-card h4 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+
+        .export-buttons {
+            display: flex;
+            gap: 15px;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+
+        @media (max-width: 768px) {
+            .dashboard {
+                grid-template-columns: 1fr;
+            }
+            
+            .gauge-container {
+                width: 250px;
+                height: 150px;
+            }
+            
+            .export-buttons {
+                flex-direction: column;
+            }
+        }
+
+        .score-number {
+            background: #3498db;
+            color: white;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 16px;
+        }
+
+        .score-label {
+            font-weight: 600;
+            color: #2c3e50;
+            font-size: 16px;
+        }
+
+        .score-description {
+            color: #5a6c7d;
+            line-height: 1.4;
+            font-size: 14px;
+            margin-left: 42px;
+        }
+
+        .navigation {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 30px;
+            gap: 15px;
+        }
+
+        .btn {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1em;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+        }
+
+        .btn-primary {
+            background: #3498db;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #2980b9;
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background: #95a5a6;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #7f8c8d;
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .results-container {
+            display: none;
+            padding: 30px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            margin-top: 20px;
+        }
+
+        .results-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .overall-score {
+            font-size: 3em;
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+
+        .maturity-level {
+            font-size: 1.5em;
+            color: #3498db;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        .level-description {
+            color: #7f8c8d;
+            font-style: italic;
+            margin-bottom: 20px;
+        }
+
+        .category-scores {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .category-item {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            border-left: 4px solid #3498db;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .category-name {
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+
+        .category-score {
+            font-size: 1.5em;
+            color: #27ae60;
+            font-weight: bold;
+        }
+
+        .recommendations {
+            background: white;
+            padding: 25px;
+            border-radius: 8px;
+            border-left: 4px solid #e74c3c;
+        }
+
+        .recommendations h3 {
+            color: #e74c3c;
+            margin-bottom: 15px;
+        }
+
+        .recommendations ul {
+            list-style: none;
+        }
+
+        .recommendations li {
+            padding: 8px 0;
+            border-bottom: 1px solid #ecf0f1;
+            color: #2c3e50;
+        }
+
+        .recommendations li:before {
+            content: "💡 ";
+            margin-right: 8px;
+        }
+
+        .demo-btn {
+            background: #e67e22;
+            color: white;
+            margin-left: auto;
+        }
+
+        .demo-btn:hover {
+            background: #d35400;
+        }
+
+        .export-btn {
+            background: #27ae60;
+            color: white;
+        }
+
+        .export-btn:hover {
+            background: #229954;
+        }
+
+
+
+        @media (max-width: 768px) {
+            .navigation {
+                flex-direction: column;
+            }
+            
+            .category-scores {
+                grid-template-columns: 1fr;
+            }
+
+            .scoring-option {
+                padding: 12px 15px;
+            }
+
+            .score-header {
+                gap: 8px;
+            }
+
+            .score-number {
+                width: 25px;
+                height: 25px;
+                font-size: 14px;
+            }
+
+            .score-label {
+                font-size: 14px;
+            }
+
+            .score-description {
+                font-size: 13px;
+                margin-left: 33px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Berry Consulting<br>Supply Chain Maturity Assessment</h1>
+            <p>Assess your Supply Chain Management maturity across 6 key pillars</p>
+        </div>
+
+        <div class="content">
+            <!-- User Registration Form (initially hidden) -->
+            <div id="registrationContainer" style="display: block;">
+                <div class="question-card">
+                    <h2 style="color: #2c3e50; text-align: center; margin-bottom: 20px;">
+                        🎯 Start Your Supply Chain Maturity Assessment
+                    </h2>
+                    <p style="text-align: center; color: #7f8c8d; margin-bottom: 30px;">
+                        Get personalized insights and industry benchmarking for your organization
+                    </p>
+                    <form id="registrationForm" style="max-width: 500px; margin: 0 auto;">
+                        <div style="margin-bottom: 20px;">
+                            <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #2c3e50;">
+                                Email Address *
+                            </label>
+                            <input type="email" id="userEmail" required 
+                                   style="width: 100%; padding: 12px; border: 2px solid #ecf0f1; border-radius: 8px; font-size: 16px;"
+                                   placeholder="your.email@company.com">
+                        </div>
+                        <div style="margin-bottom: 20px;">
+                            <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #2c3e50;">
+                                Company Name *
+                            </label>
+                            <input type="text" id="companyName" required 
+                                   style="width: 100%; padding: 12px; border: 2px solid #ecf0f1; border-radius: 8px; font-size: 16px;"
+                                   placeholder="Your Company">
+                        </div>
+                        <div style="margin-bottom: 20px;">
+                            <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #2c3e50;">
+                                Industry *
+                            </label>
+                            <select id="industry" required 
+                                    style="width: 100%; padding: 12px; border: 2px solid #ecf0f1; border-radius: 8px; font-size: 16px;">
+                                <option value="">Select your industry</option>
+                                <option value="manufacturing">Manufacturing</option>
+                                <option value="retail">Retail & Consumer Goods</option>
+                                <option value="healthcare">Healthcare & Pharmaceuticals</option>
+                                <option value="food-beverage">Food & Beverage</option>
+                                <option value="automotive">Automotive</option>
+                                <option value="technology">Technology</option>
+                                <option value="logistics">Logistics & Transportation</option>
+                                <option value="other">Other</option>
+                            </select>
+                        </div>
+                        <div style="margin-bottom: 20px;">
+                            <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #2c3e50;">
+                                Your Role
+                            </label>
+                            <input type="text" id="userRole" 
+                                   style="width: 100%; padding: 12px; border: 2px solid #ecf0f1; border-radius: 8px; font-size: 16px;"
+                                   placeholder="e.g., Supply Chain Manager, COO, Director">
+                        </div>
+                        <div style="margin-bottom: 20px;">
+                            <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #2c3e50;">
+                                Company Size
+                            </label>
+                            <select id="companySize" 
+                                    style="width: 100%; padding: 12px; border: 2px solid #ecf0f1; border-radius: 8px; font-size: 16px;">
+                                <option value="">Select company size</option>
+                                <option value="startup">Startup (1-50 employees)</option>
+                                <option value="small">Small (51-200 employees)</option>
+                                <option value="medium">Medium (201-1000 employees)</option>
+                                <option value="large">Large (1001-5000 employees)</option>
+                                <option value="enterprise">Enterprise (5000+ employees)</option>
+                            </select>
+                        </div>
+                        <div style="margin-bottom: 20px;">
+                            <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #2c3e50;">
+                                Annual Revenue (Optional)
+                            </label>
+                            <select id="revenue" 
+                                    style="width: 100%; padding: 12px; border: 2px solid #ecf0f1; border-radius: 8px; font-size: 16px;">
+                                <option value="">Prefer not to say</option>
+                                <option value="under-1m">Under $1M</option>
+                                <option value="1m-10m">$1M - $10M</option>
+                                <option value="10m-50m">$10M - $50M</option>
+                                <option value="50m-100m">$50M - $100M</option>
+                                <option value="100m-500m">$100M - $500M</option>
+                                <option value="500m-1b">$500M - $1B</option>
+                                <option value="over-1b">Over $1B</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="btn btn-primary" 
+                                style="width: 100%; padding: 15px; font-size: 18px; margin-top: 10px;">
+                            🚀 Start Assessment
+                        </button>
+                        <p style="text-align: center; font-size: 12px; color: #7f8c8d; margin-top: 15px;">
+                            Your information is secure and will only be used to provide personalized results
+                        </p>
+                    </form>
+                </div>
+            </div>
+
+            <div class="progress-bar" id="progressBarContainer" style="display: none;">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+
+            <div id="questionContainer" style="display: none;">
+                <!-- Questions will be loaded here -->
+            </div>
+
+            <div class="navigation">
+                <button class="btn btn-secondary" id="prevBtn" onclick="previousQuestion()" disabled>Previous</button>
+                <button class="btn demo-btn" id="demoBtn" onclick="runDemo()">Quick Demo</button>
+                <button class="btn btn-primary" id="nextBtn" onclick="nextQuestion()">Next</button>
+            </div>
+        </div>
+
+        <div class="results-container" id="resultsContainer">
+            <!-- Results will be displayed here -->
+        </div>
+        
+        <div class="footer">
+            <p>© 2025 Berry Consulting Supply Chain Maturity Assessment. All rights reserved. | Proprietary and confidential content.</p>
+            <p><small>This assessment tool and methodology are proprietary to Berry Consulting. Unauthorized reproduction or distribution is prohibited.</small></p>
+        </div>
+    </div>
+
+
+
+    <script>
+        // Scoring guide data for each question
+        const scoringGuides = {
+            0: { // Q1: Demand forecasting
+                1: "No formal forecasting; reactive ordering based on stockouts (Excel sheets, gut feeling)",
+                2: "Basic historical forecasting, manual processes (Simple moving averages, seasonal adjustments)",
+                3: "Structured forecasting with sales input, some statistical methods (S&OP meetings, consensus forecasting)",
+                4: "Advanced statistical/AI forecasting, integrated across functions (Machine learning models, demand sensing)",
+                5: "Real-time demand-driven forecasting with scenario modeling (AI-powered forecasting, digital twins)"
+            },
+            1: { // Q2: Sales & operations alignment
+                1: "No regular alignment; departments work in silos (Sales and operations rarely communicate)",
+                2: "Informal meetings occasionally; limited coordination (Monthly informal check-ins, email updates)",
+                3: "Regular S&OP meetings with structured agendas (Monthly S&OP process, cross-functional planning)",
+                4: "Integrated planning process with metrics and KPIs (Weekly S&OP reviews, integrated planning tools)",
+                5: "Real-time collaboration with automated data sharing (Continuous planning, real-time dashboards)"
+            },
+            2: { // Q3: Forecast accuracy
+                1: "No accuracy tracking; frequent surprises (>50% forecast error, constant expediting)",
+                2: "Basic tracking; high variability (30-50% forecast error, some accuracy measurement)",
+                3: "Regular accuracy measurement; improving trends (15-30% forecast error, monthly accuracy reviews)",
+                4: "High accuracy with continuous improvement (5-15% forecast error, statistical accuracy tracking)",
+                5: "Excellent accuracy with predictive indicators (<5% forecast error, real-time accuracy monitoring)"
+            },
+            3: { // Q4: Scenario analysis
+                1: "No scenario planning; react to changes as they happen (Crisis management, no contingency planning)",
+                2: "Occasional what-if analysis during major events (Manual scenario analysis during crises)",
+                3: "Regular scenario planning for key products/markets (Quarterly scenario planning, risk assessments)",
+                4: "Systematic scenario modeling with probability weighting (Monte Carlo simulations, integrated risk modeling)",
+                5: "Real-time scenario analysis with automated triggers (AI-powered scenario generation, dynamic planning)"
+            },
+            4: { // Q5: Risk management integration
+                1: "No formal risk consideration in planning (React to disruptions as they occur)",
+                2: "Basic risk awareness; informal mitigation (Risk discussions in planning meetings)",
+                3: "Structured risk assessment with mitigation plans (Risk registers, supplier risk assessments)",
+                4: "Quantified risk modeling integrated into planning (Risk-adjusted planning, probabilistic planning)",
+                5: "Real-time risk monitoring with automated responses (AI-powered risk detection, automated contingency)"
+            },
+            5: { // Q6: Supplier performance monitoring
+                1: "No formal supplier performance tracking (Ad-hoc complaints handling, no metrics)",
+                2: "Basic performance tracking; manual processes (Excel scorecards, quarterly reviews)",
+                3: "Structured scorecards with regular reviews (Monthly supplier scorecards, KPI dashboards)",
+                4: "Automated performance monitoring with benchmarking (Real-time scorecards, supplier portals)",
+                5: "Predictive performance analytics with optimization (AI-powered supplier optimization, predictive analytics)"
+            },
+            6: { // Q7: Long-term partnerships
+                1: "Transactional, spot purchases, no contracts (Purchase orders only, price-focused)",
+                2: "Basic contracts, short-term focus (Annual contracts, basic terms)",
+                3: "Strategic partnerships with multi-year contracts (2-3 year partnerships, performance-based contracts)",
+                4: "Collaborative partnerships with shared objectives (Joint business planning, shared KPIs, co-innovation)",
+                5: "Ecosystem partnerships with value co-creation (Strategic alliances, joint ventures, shared digital platforms)"
+            },
+            7: { // Q8: Procurement digitization
+                1: "Paper-based or email procurement (Phone calls, fax, email RFQs)",
+                2: "Basic digital tools; limited automation (Email-based RFQs, Excel comparison sheets)",
+                3: "E-procurement system with workflow automation (E-tendering platform, automated approvals)",
+                4: "Integrated procurement platform with analytics (AI-powered sourcing, spend analytics, supplier portals)",
+                5: "Autonomous procurement with predictive sourcing (AI-driven sourcing decisions, blockchain contracts)"
+            },
+            8: { // Q9: Supplier risk/ESG
+                1: "No formal risk or ESG assessment (Price and quality only)",
+                2: "Basic risk questionnaires; informal ESG consideration (Simple risk forms, basic compliance checks)",
+                3: "Structured risk and ESG assessments (Risk scorecards, ESG questionnaires, site audits)",
+                4: "Integrated risk/ESG monitoring with third-party data (Continuous monitoring, third-party risk platforms)",
+                5: "AI-powered risk/ESG optimization with real-time alerts (Predictive risk modeling, ESG impact optimization)"
+            },
+            9: { // Q10: Shipment visibility
+                1: "No shipment tracking; rely on carrier updates (Phone calls to carriers, no visibility)",
+                2: "Basic tracking through carrier websites (Manual tracking number checks)",
+                3: "Transportation management system with tracking (TMS with GPS tracking, milestone updates)",
+                4: "Real-time visibility platform with predictive alerts (IoT sensors, predictive delivery times)",
+                5: "Digital supply chain control tower with AI optimization (AI-powered visibility, autonomous route optimization)"
+            },
+            10: { // Q11: Route optimization
+                1: "No route optimization; drivers choose routes (Manual route selection, no optimization)",
+                2: "Basic route planning with maps (Google Maps, basic route planning)",
+                3: "Route optimization software with constraints (Route optimization tools, delivery windows)",
+                4: "Dynamic route optimization with real-time adjustments (AI-powered routing, real-time traffic integration)",
+                5: "Autonomous fleet optimization with predictive analytics (Self-optimizing routes, predictive maintenance)"
+            },
+            11: { // Q12: Logistics KPIs
+                1: "No formal KPI tracking; reactive problem solving (Customer complaints only)",
+                2: "Basic KPI tracking in spreadsheets (Manual OTIF calculation, basic cost tracking)",
+                3: "Regular KPI reporting with trend analysis (Monthly logistics scorecards, KPI dashboards)",
+                4: "Real-time KPI monitoring with benchmarking (Automated KPI tracking, industry benchmarking)",
+                5: "Predictive KPI analytics with optimization recommendations (AI-powered KPI optimization, predictive performance)"
+            },
+            12: { // Q13: 3PL integration
+                1: "Basic outsourcing with minimal integration (Phone/email communication only)",
+                2: "Regular communication and basic reporting (Weekly reports, basic performance tracking)",
+                3: "System integration with shared KPIs (EDI integration, shared dashboards)",
+                4: "Full collaboration with joint optimization (Integrated planning, shared analytics)",
+                5: "Strategic partnership with co-innovation (Joint technology development, shared digital platforms)"
+            },
+            13: { // Q14: Distribution simulations
+                1: "No simulation or modeling; trial and error (Reactive distribution decisions)",
+                2: "Basic analysis using historical data (Excel-based analysis, simple modeling)",
+                3: "Network modeling software for optimization (Distribution modeling tools, scenario analysis)",
+                4: "Advanced simulation with multiple constraints (Monte Carlo simulations, optimization algorithms)",
+                5: "AI-powered digital twin for continuous optimization (Real-time network optimization, digital twin modeling)"
+            },
+            14: { // Q15: Stock level tracking
+                1: "Manual stock counts; no real-time visibility (Paper records, periodic physical counts)",
+                2: "Basic inventory system with periodic updates (Simple inventory software, weekly updates)",
+                3: "Real-time inventory tracking across locations (Integrated WMS, barcode scanning)",
+                4: "Advanced inventory optimization with analytics (AI-powered inventory optimization, demand sensing)",
+                5: "Autonomous inventory management with predictive replenishment (IoT-enabled inventory, autonomous replenishment)"
+            },
+            15: { // Q16: Safety stock optimization
+                1: "No formal safety stock calculation; intuition-based (Gut feeling, rule of thumb)",
+                2: "Basic safety stock rules; manual calculation (Simple formulas, Excel calculations)",
+                3: "Statistical safety stock optimization (Statistical models, service level optimization)",
+                4: "Dynamic safety stock with demand variability (AI-powered optimization, dynamic adjustment)",
+                5: "Predictive inventory optimization with risk modeling (Machine learning, risk-adjusted optimization)"
+            },
+            16: { // Q17: Stockout frequency
+                1: "Frequent stockouts and overstocks (>20% stockout rate, excessive slow-moving inventory)",
+                2: "Occasional stockouts; some excess inventory (10-20% stockout rate, moderate overstock)",
+                3: "Rare stockouts; balanced inventory levels (5-10% stockout rate, good inventory turns)",
+                4: "Minimal stockouts; optimized inventory (1-5% stockout rate, excellent inventory management)",
+                5: "Near-zero stockouts; perfect inventory balance (<1% stockout rate, optimal inventory levels)"
+            },
+            17: { // Q18: Inventory data visibility
+                1: "No shared inventory visibility; siloed data (Each department has separate records)",
+                2: "Basic sharing through reports (Daily/weekly inventory reports)",
+                3: "Shared inventory system across functions (Integrated ERP, shared dashboards)",
+                4: "Real-time inventory visibility with analytics (Live dashboards, automated alerts)",
+                5: "Intelligent inventory insights with predictive analytics (AI-powered insights, predictive alerts)"
+            },
+            18: { // Q19: ERP/SCM system maturity
+                1: "Spreadsheets and manual processes (Excel, paper-based processes)",
+                2: "Basic software tools; limited integration (QuickBooks, standalone applications)",
+                3: "Integrated ERP system across core functions (SAP, Oracle, Odoo with basic modules)",
+                4: "Advanced ERP with analytics and optimization (Cloud ERP, advanced modules, BI integration)",
+                5: "AI-powered intelligent ERP with autonomous processes (Smart ERP, AI/ML integration, autonomous processes)"
+            },
+            19: { // Q20: Advanced analytics
+                1: "No analytics; manual reporting only (Excel reports, manual analysis)",
+                2: "Basic reporting and dashboards (Simple dashboards, basic KPIs)",
+                3: "Regular analytics with trend analysis (BI tools, trend analysis, monthly reports)",
+                4: "Advanced analytics with predictive capabilities (Machine learning, predictive models)",
+                5: "AI-powered insights with autonomous decision-making (AI-driven insights, autonomous optimization)"
+            },
+            20: { // Q21: AI/ML integration
+                1: "No AI/ML; purely manual decisions (Human judgment only)",
+                2: "Awareness of AI/ML; no implementation (Considering AI/ML solutions)",
+                3: "Pilot AI/ML projects in specific areas (Forecasting pilots, limited deployment)",
+                4: "Operational AI/ML across multiple functions (Production AI/ML, integrated optimization)",
+                5: "AI/ML-driven autonomous supply chain (Fully autonomous processes, self-learning systems)"
+            },
+            21: { // Q22: Automated replenishment
+                1: "Manual replenishment; no automation (Manual purchase orders, human decisions)",
+                2: "Basic reorder point triggers (Simple reorder alerts, manual approval)",
+                3: "Automated replenishment with rules (ERP-driven replenishment, business rules)",
+                4: "Intelligent replenishment with optimization (AI-optimized replenishment, dynamic parameters)",
+                5: "Autonomous replenishment with predictive analytics (Self-learning replenishment, predictive ordering)"
+            },
+            22: { // Q23: Sustainability measurement
+                1: "No sustainability measurement or reporting (No ESG tracking)",
+                2: "Basic awareness; informal tracking (Manual tracking, basic reporting)",
+                3: "Structured sustainability reporting (Regular ESG reports, carbon footprint calculation)",
+                4: "Comprehensive sustainability program with targets (Science-based targets, integrated ESG reporting)",
+                5: "Leading sustainability practices with optimization (Net-zero commitment, AI-optimized sustainability)"
+            },
+            23: { // Q24: Traceability
+                1: "No traceability; limited supply chain visibility (Cannot trace product origins)",
+                2: "Basic traceability for key products (Manual lot tracking, basic documentation)",
+                3: "Digital traceability system across supply chain (Blockchain pilot, digital documentation)",
+                4: "End-to-end traceability with real-time data (IoT-enabled traceability, real-time tracking)",
+                5: "Intelligent traceability with predictive insights (AI-powered traceability, predictive quality)"
+            },
+            24: { // Q25: ESG standards alignment
+                1: "No awareness of global ESG standards (No ESG framework)",
+                2: "Basic understanding; informal alignment (Aware of standards, basic compliance)",
+                3: "Structured alignment with ESG frameworks (GRI reporting, SASB alignment)",
+                4: "Comprehensive ESG integration with verification (Third-party verification, integrated ESG)",
+                5: "ESG leadership with innovation and benchmarking (Industry ESG leadership, best-practice sharing)"
+            }
+        };
+
+        // Assessment data - Berry Consulting SCMA Framework
+        const assessments = [
+            // Planning (5 questions)
+            { category: "Planning", question: "Do you have a structured demand forecasting process?", weight: 1.0 },
+            { category: "Planning", question: "How often are sales and operations aligned in planning cycles?", weight: 0.9 },
+            { category: "Planning", question: "How accurate are your forecasts (compared to actual demand)?", weight: 0.8 },
+            { category: "Planning", question: "Do you run scenario/sensitivity analysis for demand shifts?", weight: 0.7 },
+            { category: "Planning", question: "Is risk management integrated into your planning process?", weight: 0.8 },
+            
+            // Procurement & Supplier Management (4 questions)
+            { category: "Procurement", question: "Are supplier performance metrics monitored regularly?", weight: 0.9 },
+            { category: "Procurement", question: "Do you negotiate contracts based on long-term partnerships?", weight: 0.8 },
+            { category: "Procurement", question: "How digitized is your procurement process (e-tendering, eRFQ)?", weight: 0.7 },
+            { category: "Procurement", question: "Is supplier risk/ESG compliance part of vendor evaluation?", weight: 0.8 },
+            
+            // Logistics & Distribution (5 questions)
+            { category: "Logistics", question: "Do you have end-to-end visibility of shipments in real time?", weight: 1.0 },
+            { category: "Logistics", question: "How optimized are your delivery routes & fleet utilization?", weight: 0.9 },
+            { category: "Logistics", question: "Do you track logistics KPIs (cost-to-serve, OTIF, etc.)?", weight: 0.8 },
+            { category: "Logistics", question: "Are third-party logistics providers (3PLs) effectively integrated?", weight: 0.7 },
+            { category: "Logistics", question: "Do you run simulations to improve regional distribution planning?", weight: 0.6 },
+            
+            // Order-to-Cash (4 questions)
+            { category: "Order-to-Cash", question: "How well do you track stock levels across locations?", weight: 0.9 },
+            { category: "Order-to-Cash", question: "Do you use safety stock/reorder point optimization methods?", weight: 0.8 },
+            { category: "Order-to-Cash", question: "How often do you experience stockouts or overstocks?", weight: 0.8 },
+            { category: "Order-to-Cash", question: "Is inventory data visible in real time across functions?", weight: 0.7 },
+            
+            // Technology & Data (4 questions)
+            { category: "Technology", question: "What is the maturity of your ERP or core SCM systems?", weight: 1.0 },
+            { category: "Technology", question: "Do you use advanced analytics (dashboards, predictive models)?", weight: 0.9 },
+            { category: "Technology", question: "Is AI/ML integrated into decision-making (forecasting, optimization)?", weight: 0.8 },
+            { category: "Technology", question: "Do you use technology (ERP/WMS) for automated replenishment?", weight: 0.7 },
+            
+            // ESG & Compliance (3 questions)
+            { category: "ESG & Compliance", question: "Do you measure and report supply chain sustainability (CO₂, waste)?", weight: 0.9 },
+            { category: "ESG & Compliance", question: "Is traceability (farm-to-fork / source-to-shelf) embedded?", weight: 0.8 },
+            { category: "ESG & Compliance", question: "Do you align supply chain processes with global ESG standards (GRI, SASB, etc.)?", weight: 0.7 }
+        ];
+
+        let currentQuestion = 0;
+        let scores = {};
+
+        const maturityLevels = {
+            1: { name: "AD_HOC", description: "Supply chain processes are reactive and uncoordinated. High costs, inefficiency, no resilience." },
+            2: { name: "FUNCTIONAL", description: "Basic processes exist but are siloed. Policies in place but still tactical, not strategic." },
+            3: { name: "INTEGRATED", description: "Cross-functional coordination with integrated systems. Costs reducing, better visibility." },
+            4: { name: "OPTIMIZED", description: "Data-driven with advanced analytics. High efficiency, resilience, competitive advantage." },
+            5: { name: "TRANSFORMATIONAL", description: "AI-driven, digital twins, sustainability leadership. World-class efficiency and innovation." }
+        };
+
+        const ratingLabels = {
+            1: "Ad-Hoc/Reactive",
+            2: "Functional/Emerging", 
+            3: "Integrated/Process-Driven",
+            4: "Optimized/Data-Driven",
+            5: "Transformational/Digital"
+        };
+
+        function loadQuestion() {
+            const assessment = assessments[currentQuestion];
+            const questionContainer = document.getElementById('questionContainer');
+            
+            questionContainer.innerHTML = `
+                <div class="question-card">
+                    <div class="question-category">${assessment.category}</div>
+                    <div class="question-text">${assessment.question}</div>
+                    <p style="margin: 10px 0; color: #7f8c8d; font-style: italic; font-size: 14px;">
+                        Select the option that best describes your current state:
+                    </p>
+                    <div class="scoring-options">
+                        ${[1,2,3,4,5].map(score => {
+                            const guide = scoringGuides[currentQuestion];
+                            const description = guide ? guide[score] : ratingLabels[score];
+                            return `
+                            <div class="scoring-option ${scores[currentQuestion] === score ? 'selected' : ''}" 
+                                 onclick="selectScore(${score})">
+                                <div class="score-header">
+                                    <span class="score-number">${score}</span>
+                                    <span class="score-label">${ratingLabels[score]}</span>
+                                </div>
+                                <div class="score-description">${description}</div>
+                            </div>
+                        `}).join('')}
+                    </div>
+                </div>
+            `;
+
+            updateProgress();
+            updateNavigation();
+        }
+
+        function selectScore(score) {
+            scores[currentQuestion] = score;
+            
+            // Update visual selection
+            document.querySelectorAll('.scoring-option').forEach(option => {
+                option.classList.remove('selected');
+            });
+            document.querySelector(`.scoring-option:nth-child(${score})`).classList.add('selected');
+            
+            updateNavigation();
+        }
+
+        function updateProgress() {
+            const progress = ((currentQuestion + 1) / assessments.length) * 100;
+            document.getElementById('progressFill').style.width = progress + '%';
+        }
+
+        function updateNavigation() {
+            const prevBtn = document.getElementById('prevBtn');
+            const nextBtn = document.getElementById('nextBtn');
+            
+            prevBtn.disabled = currentQuestion === 0;
+            
+            if (currentQuestion === assessments.length - 1) {
+                nextBtn.textContent = 'Calculate Results';
+                nextBtn.disabled = scores[currentQuestion] === undefined;
+            } else {
+                nextBtn.textContent = 'Next';
+                nextBtn.disabled = scores[currentQuestion] === undefined;
+            }
+        }
+
+        function nextQuestion() {
+            if (currentQuestion < assessments.length - 1) {
+                currentQuestion++;
+                loadQuestion();
+            } else {
+                calculateResults();
+            }
+        }
+
+        function previousQuestion() {
+            if (currentQuestion > 0) {
+                currentQuestion--;
+                loadQuestion();
+            }
+        }
+
+        function calculateResults() {
+            const categoryData = {};
+            
+            // Collect scores and weights by category
+            assessments.forEach((assessment, index) => {
+                if (!categoryData[assessment.category]) {
+                    categoryData[assessment.category] = { scores: [], weights: [] };
+                }
+                categoryData[assessment.category].scores.push(scores[index] || 1);
+                categoryData[assessment.category].weights.push(assessment.weight);
+            });
+
+            // Calculate weighted average per category
+            const categoryAverages = {};
+            for (const [category, data] of Object.entries(categoryData)) {
+                const weightedSum = data.scores.reduce((sum, score, i) => sum + score * data.weights[i], 0);
+                const totalWeight = data.weights.reduce((sum, weight) => sum + weight, 0);
+                categoryAverages[category] = weightedSum / totalWeight;
+            }
+
+            // Calculate overall score
+            const overallScore = Object.values(categoryAverages).reduce((sum, score) => sum + score, 0) / Object.keys(categoryAverages).length;
+            
+            // Determine maturity level
+            let maturityLevel;
+            if (overallScore >= 4.5) maturityLevel = 5;
+            else if (overallScore >= 3.5) maturityLevel = 4;
+            else if (overallScore >= 2.5) maturityLevel = 3;
+            else if (overallScore >= 1.5) maturityLevel = 2;
+            else maturityLevel = 1;
+
+            // Generate recommendations
+            const recommendations = generateRecommendations(categoryAverages, overallScore);
+            
+            // Generate consulting package suggestion
+            const consultingPackage = suggestConsultingPackage(maturityLevel, overallScore);
+
+            displayResults({
+                overallScore: Math.round(overallScore * 100) / 100,
+                maturityLevel: maturityLevels[maturityLevel],
+                categoryScores: categoryAverages,
+                recommendations: recommendations,
+                consultingPackage: consultingPackage
+            });
+        }
+
+        function generateRecommendations(categoryScores, overallScore) {
+            const recommendations = [];
+            const sortedCategories = Object.entries(categoryScores).sort((a, b) => a[1] - b[1]);
+
+            for (const [category, score] of sortedCategories.slice(0, 3)) {
+                if (score < 3.0) {
+                    switch (category) {
+                        case "Planning":
+                            recommendations.push("Implement structured demand planning with S&OP (Sales & Operations Planning) process");
+                            break;
+                        case "Procurement":
+                            recommendations.push("Digitize procurement processes and establish supplier performance scorecards");
+                            break;
+                        case "Logistics":
+                            recommendations.push("Implement real-time shipment visibility and route optimization systems");
+                            break;
+                        case "Order-to-Cash":
+                            recommendations.push("Establish inventory optimization with safety stock management and automated replenishment");
+                            break;
+                        case "Technology":
+                            recommendations.push("Upgrade to integrated ERP/SCM systems with advanced analytics and dashboards");
+                            break;
+                        case "ESG & Compliance":
+                            recommendations.push("Implement ESG metrics tracking and establish supply chain sustainability reporting");
+                            break;
+                    }
+                }
+            }
+
+            if (overallScore < 1.5) {
+                recommendations.push("Urgent stabilization needed - document basic processes and implement visibility tools");
+            } else if (overallScore < 2.5) {
+                recommendations.push("Focus on cross-functional integration and standardizing supply chain processes");
+            } else if (overallScore < 3.5) {
+                recommendations.push("Implement predictive analytics and supplier collaboration programs");
+            } else if (overallScore < 4.5) {
+                recommendations.push("Focus on digital transformation, AI/ML optimization, and ESG leadership");
+            }
+
+            return recommendations;
+        }
+
+        function suggestConsultingPackage(maturityLevel, overallScore) {
+            if (maturityLevel <= 2 || overallScore < 2.5) {
+                return {
+                    package: "Diagnostic",
+                    description: "Baseline assessment, process documentation, KPI setup, and quick wins identification",
+                    scope: "Process standardization, basic SCM framework, 1-day leadership workshop",
+                    outcome: "Move from firefighting to stable functional control",
+                    duration: "4-6 weeks",
+                    priceRange: "$3,000 - $8,000"
+                };
+            } else if (maturityLevel == 3 || (2.5 <= overallScore < 3.5)) {
+                return {
+                    package: "Advisory",
+                    description: "Cross-functional integration, S&OP implementation, ERP/WMS guidance, ESG baseline",
+                    scope: "Integrated planning, supplier scorecards, digital tools advisory, ESG framework",
+                    outcome: "Move from functional silos to integrated, data-driven supply chain",
+                    duration: "6-12 weeks",
+                    priceRange: "$15,000 - $35,000"
+                };
+            } else {
+                return {
+                    package: "Transformation",
+                    description: "Digital twins, AI/ML optimization, end-to-end ESG strategy, regional redesign",
+                    scope: "Predictive analytics, digital transformation, ESG leadership, change management",
+                    outcome: "Move to world-class, resilient supply chain ecosystem",
+                    duration: "6-12 months",
+                    priceRange: "$50,000+"
+                };
+            }
+        }
+
+        function displayResults(results) {
+            document.querySelector('.content').style.display = 'none';
+            
+            const resultsContainer = document.getElementById('resultsContainer');
+            resultsContainer.style.display = 'block';
+            
+            // Create comprehensive dashboard and report
+            resultsContainer.innerHTML = `
+                <!-- Executive Summary Header -->
+                <div class="results-header">
+                    <div class="overall-score">${results.overallScore}/5.0</div>
+                    <div class="maturity-level">${results.maturityLevel.name} Level</div>
+                    <div class="level-description">${results.maturityLevel.description}</div>
+                </div>
+
+                <!-- Interactive Dashboard -->
+                <div class="dashboard">
+                    <div class="chart-container">
+                        <h3>📊 Category Performance Radar</h3>
+                        <div class="radar-container">
+                            <canvas id="radarChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="chart-container">
+                        <h3>🎯 Overall Maturity Gauge</h3>
+                        <div class="gauge-container">
+                            <canvas id="gaugeChart"></canvas>
+                        </div>
+                        <p style="margin-top: 15px; font-weight: bold; color: #2c3e50;">
+                            ${results.overallScore}/5.0 - ${results.maturityLevel.name}
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Premium Upgrade CTA -->
+                <div class="upgrade-cta">
+                    <h3>🚀 Unlock Premium Insights & Benchmarking</h3>
+                    <p>Get detailed peer comparison, industry percentiles, and professional implementation roadmap</p>
+                    
+                    <div style="background: rgba(255,255,255,0.15); padding: 20px; border-radius: 10px; margin: 20px 0;">
+                        <h4 style="color: white; margin-bottom: 15px;">Premium Features Include:</h4>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; color: white;">
+                            <div>✅ Detailed peer comparison (${assessmentDatabase.length}+ companies)</div>
+                            <div>✅ Industry percentile ranking</div>
+                            <div>✅ Professional PDF report with charts</div>
+                            <div>✅ Implementation priority matrix</div>
+                            <div>✅ ROI calculator for improvements</div>
+                            <div>✅ 6-month progress tracking</div>
+                        </div>
+                    </div>
+                    
+                    <div class="export-buttons">
+                        <button class="btn" style="background: white; color: #e74c3c; font-weight: bold; font-size: 18px; padding: 15px 30px;" onclick="showPremiumUpgrade()">
+                            � Upgrade to Premium - $99
+                        </button>
+                        <button class="btn" style="background: rgba(255,255,255,0.2); color: white; font-size: 16px; padding: 12px 24px;" onclick="requestConsultingQuote('${results.consultingPackage.package}')">
+                            💼 Get Consulting Package
+                        </button>
+                    </div>
+                    
+                    <p style="color: rgba(255,255,255,0.8); font-size: 14px; margin-top: 15px;">
+                        30-day money-back guarantee • Secure payment via BerryPay
+                    </p>
+                </div>
+
+                <!-- Detailed Report Sections -->
+                <div class="report-section">
+                    <h2>📈 Category Performance Analysis</h2>
+                    <div class="insights-grid">
+                        ${Object.entries(results.categoryScores).map(([category, score]) => {
+                            const performance = score >= 4 ? 'Excellent' : score >= 3 ? 'Good' : score >= 2 ? 'Developing' : 'Needs Attention';
+                            const color = score >= 4 ? '#27ae60' : score >= 3 ? '#3498db' : score >= 2 ? '#f39c12' : '#e74c3c';
+                            const industryAvg = getIndustryBenchmark(userData.industry, category, userData.companySize);
+                            const benchmarkStats = getBenchmarkStats(userData.industry, category, userData.companySize);
+                            const vsIndustry = score > industryAvg ? 'Above' : score < industryAvg ? 'Below' : 'At';
+                            const comparisonColor = score > industryAvg ? '#27ae60' : score < industryAvg ? '#e74c3c' : '#3498db';
+                            
+                            return `
+                                <div class="insight-card" style="border-left-color: ${color};">
+                                    <h4>${category}</h4>
+                                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                                        <span style="font-size: 18px; font-weight: bold; color: ${color};">${Math.round(score * 100) / 100}/5.0</span>
+                                        <span style="color: ${color}; font-weight: bold;">${performance}</span>
+                                    </div>
+                                    <div style="background: #e9ecef; height: 8px; border-radius: 4px; overflow: hidden; margin-bottom: 8px;">
+                                        <div style="background: ${color}; height: 100%; width: ${(score/5)*100}%; transition: width 0.3s ease;"></div>
+                                    </div>
+                                    <div style="font-size: 12px; color: ${comparisonColor}; font-weight: bold; margin-bottom: 5px;">
+                                        ${vsIndustry} Industry Average (${Math.round(industryAvg * 100) / 100})
+                                    </div>
+                                    ${benchmarkStats.count > 0 ? `
+                                        <div style="font-size: 11px; color: #7f8c8d;">
+                                            📊 Based on ${benchmarkStats.count} ${userData.industry} companies
+                                            ${benchmarkStats.percentile ? `• ${benchmarkStats.percentile}th percentile` : ''}
+                                        </div>
+                                    ` : `
+                                        <div style="font-size: 11px; color: #e74c3c;">
+                                            💎 <strong>Upgrade for detailed peer comparison</strong>
+                                        </div>
+                                    `}
+                                </div>
+                            `;
+                        }).join('')}
+                    </div>
+                </div>
+
+                <div class="report-section">
+                    <h2>🎯 Strategic Recommendations</h2>
+                    <div class="insights-grid">
+                        ${results.recommendations.map((rec, index) => `
+                            <div class="insight-card">
+                                <h4>Priority ${index + 1}</h4>
+                                <p>${rec}</p>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+
+                <div class="report-section" style="background: linear-gradient(135deg, #e8f5e8, #f0f8f0); border: 2px solid #27ae60;">
+                    <h2 style="color: #27ae60;">🎯 Recommended Berry Consulting Package</h2>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin-bottom: 20px;">
+                        <div class="insight-card" style="border-left-color: #27ae60;">
+                            <h4>📦 ${results.consultingPackage.package} Package</h4>
+                            <p><strong>Investment:</strong> ${results.consultingPackage.priceRange}</p>
+                            <p><strong>Duration:</strong> ${results.consultingPackage.duration}</p>
+                        </div>
+                        <div class="insight-card" style="border-left-color: #27ae60;">
+                            <h4>🎯 Expected Outcome</h4>
+                            <p>${results.consultingPackage.outcome}</p>
+                        </div>
+                    </div>
+                    <div class="insight-card" style="background: white; border-left-color: #27ae60;">
+                        <h4>📋 Scope & Description</h4>
+                        <p><strong>Description:</strong> ${results.consultingPackage.description}</p>
+                        <p><strong>Scope:</strong> ${results.consultingPackage.scope}</p>
+                    </div>
+                    <div style="text-align: center; margin-top: 20px;">
+                        <button class="btn" style="background: #27ae60; color: white; margin-right: 10px; padding: 12px 24px;" onclick="window.open('mailto:kenneth@berrycom.co.ke?subject=SCMA Assessment - ${results.consultingPackage.package} Package Inquiry', '_blank')">📧 Contact Berry Expert</button>
+                        <button class="btn" style="background: #3498db; color: white; padding: 12px 24px;" onclick="requestConsultingQuote('${results.consultingPackage.package}')">💰 Get Detailed Quote</button>
+                    </div>
+                </div>
+
+                <!-- Assessment Database Stats (for admin/demo purposes) -->
+                <div class="report-section" style="background: #f8f9fa; border: 1px solid #dee2e6;">
+                    <h2>📊 Assessment Database Stats</h2>
+                    <div class="insights-grid">
+                        <div class="insight-card">
+                            <h4>Total Assessments</h4>
+                            <p style="font-size: 24px; font-weight: bold; color: #3498db;">${assessmentDatabase.length}</p>
+                            <p style="font-size: 12px; color: #7f8c8d;">Continuously building benchmark data</p>
+                        </div>
+                        <div class="insight-card">
+                            <h4>Your Industry (${userData.industry})</h4>
+                            <p style="font-size: 24px; font-weight: bold; color: #27ae60;">
+                                ${assessmentDatabase.filter(a => a.industry === userData.industry).length}
+                            </p>
+                            <p style="font-size: 12px; color: #7f8c8d;">Companies for benchmarking</p>
+                        </div>
+                        <div class="insight-card">
+                            <h4>Data Quality</h4>
+                            <p style="font-size: 18px; font-weight: bold; color: #f39c12;">
+                                ${assessmentDatabase.length >= 50 ? 'High' : assessmentDatabase.length >= 20 ? 'Medium' : 'Growing'}
+                            </p>
+                            <p style="font-size: 12px; color: #7f8c8d;">Benchmark reliability improving</p>
+                        </div>
+                    </div>
+                    <p style="text-align: center; color: #7f8c8d; font-style: italic; margin-top: 15px;">
+                        💡 Every assessment improves our benchmarking accuracy for all users
+                    </p>
+                </div>
+
+                <div style="text-align: center; margin: 30px 0;">
+                    <button class="btn btn-secondary" onclick="restartAssessment()" style="margin-right: 15px;">🔄 Take Assessment Again</button>
+                    <button class="btn export-btn" onclick="exportResults()" style="margin-right: 15px;">📊 Export Data (Excel)</button>
+                    <button class="btn" style="background: #e74c3c; color: white;" onclick="generatePDFReport()">📄 Generate PDF Report</button>
+                    <button class="btn" style="background: #9b59b6; color: white; margin-left: 15px;" onclick="showAssessmentDatabase()">🗄️ View Database</button>
+                </div>
+            `;
+            
+            // Create charts after DOM is updated
+            setTimeout(() => {
+                createRadarChart(results);
+                createGaugeChart(results);
+            }, 100);
+            
+            // Store assessment in database for benchmarking
+            const assessmentRecord = {
+                ...userData,
+                categoryScores: results.categoryScores,
+                overallScore: results.overallScore,
+                maturityLevel: results.maturityLevel.name,
+                completedAt: new Date().toISOString(),
+                assessmentData: scores // Store individual question scores
+            };
+            
+            assessmentDatabase.push(assessmentRecord);
+            localStorage.setItem('scmm_assessments', JSON.stringify(assessmentDatabase));
+            
+            // Store results for export
+            window.lastResults = results;
+        }
+
+        // Premium upgrade flow
+        function showPremiumUpgrade() {
+            const modal = document.createElement('div');
+            modal.style.cssText = `
+                position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+                background: rgba(0,0,0,0.8); z-index: 1000; display: flex; 
+                align-items: center; justify-content: center; padding: 20px;
+            `;
+            
+            modal.innerHTML = `
+                <div style="background: white; border-radius: 15px; padding: 40px; max-width: 600px; width: 100%; max-height: 90vh; overflow-y: auto;">
+                    <div style="text-align: center; margin-bottom: 30px;">
+                        <h2 style="color: #2c3e50; margin-bottom: 10px;">💎 Upgrade to Premium</h2>
+                        <p style="color: #7f8c8d; font-size: 16px;">Unlock detailed benchmarking and professional insights</p>
+                    </div>
+                    
+                    <div style="background: #f8f9fa; padding: 20px; border-radius: 10px; margin-bottom: 30px;">
+                        <h3 style="color: #2c3e50; margin-bottom: 15px;">What You'll Get:</h3>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <span style="color: #27ae60; font-size: 18px;">✅</span>
+                                <span>Detailed peer comparison</span>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <span style="color: #27ae60; font-size: 18px;">✅</span>
+                                <span>Industry percentile ranking</span>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <span style="color: #27ae60; font-size: 18px;">✅</span>
+                                <span>Professional PDF report</span>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <span style="color: #27ae60; font-size: 18px;">✅</span>
+                                <span>Implementation roadmap</span>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <span style="color: #27ae60; font-size: 18px;">✅</span>
+                                <span>ROI calculator</span>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <span style="color: #27ae60; font-size: 18px;">✅</span>
+                                <span>6-month progress tracking</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div style="text-align: center; margin-bottom: 30px;">
+                        <div style="font-size: 36px; font-weight: bold; color: #e74c3c; margin-bottom: 10px;">$99</div>
+                        <div style="color: #7f8c8d;">One-time payment • 30-day money-back guarantee</div>
+                    </div>
+                    
+                    <div style="display: flex; gap: 15px; justify-content: center;">
+                        <button onclick="processPremiumPayment()" class="btn" 
+                                style="background: #27ae60; color: white; padding: 15px 30px; font-size: 18px; font-weight: bold;">
+                            💳 Pay Now - $99
+                        </button>
+                        <button onclick="requestCorporateBilling()" class="btn" 
+                                style="background: #3498db; color: white; padding: 15px 30px; font-size: 16px;">
+                            🏢 Corporate Billing
+                        </button>
+                    </div>
+                    
+                    <div style="text-align: center; margin-top: 20px;">
+                        <button onclick="document.body.removeChild(this.closest('.modal'))" 
+                                style="background: none; border: none; color: #7f8c8d; cursor: pointer; text-decoration: underline;">
+                            Maybe later
+                        </button>
+                    </div>
+                </div>
+            `;
+            
+            modal.className = 'modal';
+            document.body.appendChild(modal);
+        }
+
+        async function processPremiumPayment() {
+            const userData = JSON.parse(localStorage.getItem('scma_user_profile') || '{}');
+            userData.assessmentId = window.lastResults?.assessmentId || `scma_${Date.now()}`;
+            
+            // Use BerryPay API integration if available
+            if (window.scmaPaymentManager) {
+                try {
+                    await window.scmaPaymentManager.processPremiumPayment(userData);
+                } catch (error) {
+                    console.error('Payment processing error:', error);
+                    // Fallback to contact information
+                    alert(`🚀 Payment Processing Temporarily Unavailable\n\nPlease contact us directly:\n📧 kenneth@berrycom.co.ke\nSubject: "Premium SCMA Report - ${userData.assessmentId}"\n\nWe'll process your upgrade manually and send you the premium report within 24 hours.`);
+                }
+            } else {
+                // Fallback for when API is not available
+                alert(`🚀 Initiating Premium Payment...\n\nRedirecting to BerryPay Gateway:\n• Secure payment processing\n• Credit cards, mobile money, bank transfer\n• Instant access after payment\n\nFor now, please contact: kenneth@berrycom.co.ke\nSubject: "Premium SCMA Report - ${userData.assessmentId}"`);
+            }
+        }
+
+        function requestCorporateBilling() {
+            // Corporate billing request
+            const corporateData = {
+                ...userData,
+                requestType: 'corporate_billing',
+                product: 'Premium SCMA Report',
+                amount: 99,
+                requestedAt: new Date().toISOString()
+            };
+            
+            alert(`🏢 Corporate Billing Request Submitted\n\nWe'll send you:\n• Professional invoice\n• Net 30 payment terms\n• Purchase order options\n• Corporate account setup\n\nExpect contact within 24 hours at: ${userData.email}`);
+            
+            console.log('Corporate billing request:', corporateData);
+            // Future: Send to CRM/billing system
+        }
+
+        // Database viewer (admin function)
+        function showAssessmentDatabase() {
+            const modal = document.createElement('div');
+            modal.style.cssText = `
+                position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+                background: rgba(0,0,0,0.9); z-index: 1000; display: flex; 
+                align-items: center; justify-content: center; padding: 20px;
+            `;
+            
+            // Industry distribution
+            const industryStats = {};
+            const sizeStats = {};
+            assessmentDatabase.forEach(a => {
+                industryStats[a.industry] = (industryStats[a.industry] || 0) + 1;
+                sizeStats[a.companySize] = (sizeStats[a.companySize] || 0) + 1;
+            });
+            
+            modal.innerHTML = `
+                <div style="background: white; border-radius: 15px; padding: 30px; max-width: 90%; width: 1000px; max-height: 90vh; overflow-y: auto;">
+                    <div style="display: flex; justify-content: between; align-items: center; margin-bottom: 20px;">
+                        <h2 style="color: #2c3e50;">🗄️ Assessment Database (${assessmentDatabase.length} records)</h2>
+                        <button onclick="document.body.removeChild(this.closest('.modal'))" 
+                                style="background: #e74c3c; color: white; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer;">
+                            ✕ Close
+                        </button>
+                    </div>
+                    
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 30px;">
+                        <div style="background: #f8f9fa; padding: 20px; border-radius: 10px;">
+                            <h3>Industry Distribution</h3>
+                            ${Object.entries(industryStats).map(([industry, count]) => 
+                                `<div style="display: flex; justify-content: space-between; margin: 5px 0;">
+                                    <span>${industry}</span><span><strong>${count}</strong></span>
+                                </div>`
+                            ).join('')}
+                        </div>
+                        <div style="background: #f8f9fa; padding: 20px; border-radius: 10px;">
+                            <h3>Company Size Distribution</h3>
+                            ${Object.entries(sizeStats).map(([size, count]) => 
+                                `<div style="display: flex; justify-content: space-between; margin: 5px 0;">
+                                    <span>${size || 'Not specified'}</span><span><strong>${count}</strong></span>
+                                </div>`
+                            ).join('')}
+                        </div>
+                    </div>
+                    
+                    <div style="max-height: 400px; overflow-y: auto; border: 1px solid #dee2e6; border-radius: 8px;">
+                        <table style="width: 100%; border-collapse: collapse;">
+                            <thead style="background: #f8f9fa; position: sticky; top: 0;">
+                                <tr>
+                                    <th style="padding: 12px; text-align: left; border-bottom: 1px solid #dee2e6;">Company</th>
+                                    <th style="padding: 12px; text-align: left; border-bottom: 1px solid #dee2e6;">Industry</th>
+                                    <th style="padding: 12px; text-align: left; border-bottom: 1px solid #dee2e6;">Size</th>
+                                    <th style="padding: 12px; text-align: left; border-bottom: 1px solid #dee2e6;">Overall Score</th>
+                                    <th style="padding: 12px; text-align: left; border-bottom: 1px solid #dee2e6;">Level</th>
+                                    <th style="padding: 12px; text-align: left; border-bottom: 1px solid #dee2e6;">Date</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${assessmentDatabase.slice(-20).reverse().map(assessment => `
+                                    <tr style="border-bottom: 1px solid #f1f3f4;">
+                                        <td style="padding: 10px;">${assessment.company}</td>
+                                        <td style="padding: 10px;">${assessment.industry}</td>
+                                        <td style="padding: 10px;">${assessment.companySize || 'N/A'}</td>
+                                        <td style="padding: 10px; font-weight: bold;">${assessment.overallScore}</td>
+                                        <td style="padding: 10px;">${assessment.maturityLevel}</td>
+                                        <td style="padding: 10px; font-size: 12px;">${new Date(assessment.completedAt).toLocaleDateString()}</td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <div style="text-align: center; margin-top: 20px;">
+                        <button onclick="exportAssessmentDatabase()" class="btn" 
+                                style="background: #27ae60; color: white; margin-right: 15px;">
+                            📊 Export Database (Excel)
+                        </button>
+                        <button onclick="clearAssessmentDatabase()" class="btn" 
+                                style="background: #e74c3c; color: white;">
+                            🗑️ Clear Database
+                        </button>
+                    </div>
+                </div>
+            `;
+            
+            modal.className = 'modal';
+            document.body.appendChild(modal);
+        }
+
+        function exportAssessmentDatabase() {
+            const wb = XLSX.utils.book_new();
+            
+            // Assessment Database Summary
+            const summaryData = [
+                ['Berry Consulting SCMA Assessment Database Export'],
+                [''],
+                ['Export Date', new Date().toLocaleDateString()],
+                ['Total Assessments', assessmentDatabase.length],
+                [''],
+                ['Assessment Summary'],
+                ['Assessment ID', 'Company', 'Industry', 'Company Size', 'Date', 'Overall Score', 'Maturity Level']
+            ];
+            
+            assessmentDatabase.forEach(assessment => {
+                summaryData.push([
+                    assessment.assessmentId,
+                    assessment.userProfile?.company || 'N/A',
+                    assessment.userProfile?.industry || 'N/A',
+                    assessment.userProfile?.companySize || 'N/A',
+                    new Date(assessment.timestamp).toLocaleDateString(),
+                    `${Math.round(assessment.overallScore * 100)}%`,
+                    `Level ${assessment.maturityLevel}`
+                ]);
+            });
+            
+            const summaryWs = XLSX.utils.aoa_to_sheet(summaryData);
+            XLSX.utils.book_append_sheet(wb, summaryWs, 'Database Summary');
+            
+            // Industry Analysis
+            const industryStats = {};
+            assessmentDatabase.forEach(assessment => {
+                const industry = assessment.userProfile?.industry || 'Unknown';
+                if (!industryStats[industry]) {
+                    industryStats[industry] = { count: 0, totalScore: 0 };
+                }
+                industryStats[industry].count++;
+                industryStats[industry].totalScore += assessment.overallScore;
+            });
+            
+            const industryData = [
+                ['Industry Analysis'],
+                [''],
+                ['Industry', 'Assessment Count', 'Average Score', 'Average Maturity Level']
+            ];
+            
+            Object.entries(industryStats).forEach(([industry, stats]) => {
+                const avgScore = stats.totalScore / stats.count;
+                industryData.push([
+                    industry,
+                    stats.count,
+                    `${Math.round(avgScore * 100)}%`,
+                    `Level ${Math.ceil(avgScore * 5)}`
+                ]);
+            });
+            
+            const industryWs = XLSX.utils.aoa_to_sheet(industryData);
+            XLSX.utils.book_append_sheet(wb, industryWs, 'Industry Analysis');
+            
+            // Category Performance Analysis
+            const categoryData = [
+                ['Category Performance Analysis'],
+                [''],
+                ['Category', 'Average Score', 'Count']
+            ];
+            
+            const categoryStats = {};
+            assessmentDatabase.forEach(assessment => {
+                Object.entries(assessment.categoryScores).forEach(([category, score]) => {
+                    if (!categoryStats[category]) {
+                        categoryStats[category] = { total: 0, count: 0 };
+                    }
+                    categoryStats[category].total += score;
+                    categoryStats[category].count++;
+                });
+            });
+            
+            Object.entries(categoryStats).forEach(([category, stats]) => {
+                categoryData.push([
+                    category,
+                    `${Math.round((stats.total / stats.count) * 100)}%`,
+                    stats.count
+                ]);
+            });
+            
+            const categoryWs = XLSX.utils.aoa_to_sheet(categoryData);
+            XLSX.utils.book_append_sheet(wb, categoryWs, 'Category Analysis');
+            
+            // Export to Excel
+            XLSX.writeFile(wb, `berry_consulting_scma_database_${new Date().toISOString().split('T')[0]}.xlsx`);
+        }
+
+        function clearAssessmentDatabase() {
+            if (confirm('Are you sure you want to clear the entire assessment database? This cannot be undone.')) {
+                assessmentDatabase = [];
+                localStorage.setItem('scmm_assessments', JSON.stringify(assessmentDatabase));
+                alert('Assessment database cleared.');
+                document.body.removeChild(document.querySelector('.modal'));
+            }
+        }
+
+        // Chart Creation Functions
+        function createRadarChart(results) {
+            const ctx = document.getElementById('radarChart').getContext('2d');
+            
+            const categories = Object.keys(results.categoryScores);
+            const scores = Object.values(results.categoryScores);
+            
+            new Chart(ctx, {
+                type: 'radar',
+                data: {
+                    labels: categories,
+                    datasets: [{
+                        label: 'Current Maturity',
+                        data: scores,
+                        backgroundColor: 'rgba(52, 152, 219, 0.2)',
+                        borderColor: 'rgba(52, 152, 219, 1)',
+                        borderWidth: 2,
+                        pointBackgroundColor: 'rgba(52, 152, 219, 1)',
+                        pointBorderColor: '#fff',
+                        pointHoverBackgroundColor: '#fff',
+                        pointHoverBorderColor: 'rgba(52, 152, 219, 1)'
+                    }, {
+                        label: 'Target Level (4.0)',
+                        data: new Array(categories.length).fill(4),
+                        backgroundColor: 'rgba(46, 204, 113, 0.1)',
+                        borderColor: 'rgba(46, 204, 113, 0.8)',
+                        borderWidth: 1,
+                        borderDash: [5, 5],
+                        pointRadius: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        r: {
+                            beginAtZero: true,
+                            max: 5,
+                            min: 0,
+                            ticks: {
+                                stepSize: 1,
+                                callback: function(value) {
+                                    return value.toFixed(0);
+                                }
+                            },
+                            pointLabels: {
+                                font: {
+                                    size: 11
+                                }
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        }
+                    }
+                }
+            });
+        }
+
+        function createGaugeChart(results) {
+            const canvas = document.getElementById('gaugeChart');
+            const ctx = canvas.getContext('2d');
+            
+            // Clear canvas
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // Set canvas size
+            canvas.width = 300;
+            canvas.height = 200;
+            
+            const centerX = canvas.width / 2;
+            const centerY = canvas.height - 30;
+            const radius = 80;
+            
+            // Draw gauge background
+            ctx.strokeStyle = '#ecf0f1';
+            ctx.lineWidth = 20;
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, radius, Math.PI, 2 * Math.PI);
+            ctx.stroke();
+            
+            // Calculate angle based on score (0-5 scale)
+            const score = results.overallScore;
+            const angle = Math.PI + (score / 5) * Math.PI;
+            
+            // Determine color based on score
+            let gaugeColor;
+            if (score >= 4) gaugeColor = '#27ae60';
+            else if (score >= 3) gaugeColor = '#3498db';
+            else if (score >= 2) gaugeColor = '#f39c12';
+            else gaugeColor = '#e74c3c';
+            
+            // Draw progress arc
+            ctx.strokeStyle = gaugeColor;
+            ctx.lineWidth = 20;
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, radius, Math.PI, angle);
+            ctx.stroke();
+            
+            // Draw center circle
+            ctx.fillStyle = '#2c3e50';
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, 10, 0, 2 * Math.PI);
+            ctx.fill();
+            
+            // Draw needle
+            const needleAngle = angle;
+            const needleLength = radius - 10;
+            ctx.strokeStyle = '#2c3e50';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.moveTo(centerX, centerY);
+            ctx.lineTo(
+                centerX + Math.cos(needleAngle) * needleLength,
+                centerY + Math.sin(needleAngle) * needleLength
+            );
+            ctx.stroke();
+            
+            // Draw scale labels
+            ctx.fillStyle = '#2c3e50';
+            ctx.font = '12px Arial';
+            ctx.textAlign = 'center';
+            
+            for (let i = 0; i <= 5; i++) {
+                const labelAngle = Math.PI + (i / 5) * Math.PI;
+                const labelX = centerX + Math.cos(labelAngle) * (radius + 25);
+                const labelY = centerY + Math.sin(labelAngle) * (radius + 25);
+                ctx.fillText(i.toString(), labelX, labelY + 4);
+            }
+            
+            // Draw level labels
+            ctx.font = '10px Arial';
+            const levels = ['Ad-Hoc', 'Functional', 'Integrated', 'Optimized', 'Transformational'];
+            levels.forEach((level, index) => {
+                const labelAngle = Math.PI + ((index + 0.5) / 5) * Math.PI;
+                const labelX = centerX + Math.cos(labelAngle) * (radius - 35);
+                const labelY = centerY + Math.sin(labelAngle) * (radius - 35);
+                ctx.save();
+                ctx.translate(labelX, labelY);
+                ctx.rotate(labelAngle - Math.PI/2);
+                ctx.textAlign = 'center';
+                ctx.fillText(level, 0, 3);
+                ctx.restore();
+            });
+        }
+
+        function runDemo() {
+            // Pre-fill with demo scores for SCMM (25 questions)
+            const demoScores = [
+                // Planning (5): Mixed capability  
+                3, 4, 2, 3, 4,
+                // Procurement (4): Moderate maturity
+                3, 3, 2, 3,
+                // Logistics (5): Good processes
+                4, 3, 4, 3, 2,
+                // Order-to-Cash (4): Basic capability
+                2, 3, 2, 3,
+                // Technology (4): Emerging systems
+                2, 3, 2, 3,
+                // ESG (3): Limited implementation
+                2, 2, 1
+            ];
+            
+            demoScores.forEach((score, index) => {
+                if (index < assessments.length) {
+                    scores[index] = score;
+                }
+            });
+            
+            calculateResults();
+        }
+
+        function restartAssessment() {
+            currentQuestion = 0;
+            scores = {};
+            document.querySelector('.content').style.display = 'block';
+            document.getElementById('resultsContainer').style.display = 'none';
+            loadQuestion();
+        }
+
+        function exportResults() {
+            if (window.lastResults) {
+                const results = window.lastResults;
+                
+                // Create workbook with multiple sheets
+                const wb = XLSX.utils.book_new();
+                
+                // Summary Sheet
+                const summaryData = [
+                    ['Berry Consulting Supply Chain Maturity Assessment - Results'],
+                    [''],
+                    ['Assessment Details'],
+                    ['Assessment ID', results.assessmentId || 'N/A'],
+                    ['Date', new Date().toLocaleDateString()],
+                    ['Overall Maturity Level', `Level ${results.maturityLevel} - ${results.maturityDescription}`],
+                    ['Overall Score', `${Math.round(results.overallScore * 100)}%`],
+                    [''],
+                    ['Category Scores'],
+                    ['Category', 'Score', 'Level'],
+                ];
+                
+                Object.entries(results.categoryScores).forEach(([category, score]) => {
+                    summaryData.push([category, `${Math.round(score * 100)}%`, `Level ${Math.ceil(score * 5)}`]);
+                });
+                
+                summaryData.push(['']);
+                summaryData.push(['Consulting Package Recommendation']);
+                summaryData.push(['Package', results.consultingPackage.package]);
+                summaryData.push(['Description', results.consultingPackage.description]);
+                summaryData.push(['Price Range', results.consultingPackage.priceRange]);
+                
+                const summaryWs = XLSX.utils.aoa_to_sheet(summaryData);
+                XLSX.utils.book_append_sheet(wb, summaryWs, 'Summary');
+                
+                // Detailed Responses Sheet
+                const responseData = [
+                    ['Question Responses'],
+                    [''],
+                    ['Question', 'Category', 'Response', 'Score']
+                ];
+                
+                results.responses.forEach((response, index) => {
+                    const question = assessmentQuestions[index];
+                    responseData.push([
+                        question.text,
+                        question.category,
+                        response.toString(),
+                        `${response}/5`
+                    ]);
+                });
+                
+                const responseWs = XLSX.utils.aoa_to_sheet(responseData);
+                XLSX.utils.book_append_sheet(wb, responseWs, 'Responses');
+                
+                // Benchmarking Sheet (if available)
+                if (results.benchmarkData) {
+                    const benchmarkData = [
+                        ['Industry Benchmarking'],
+                        [''],
+                        ['Metric', 'Your Score', 'Industry Average', 'Percentile Rank'],
+                        ['Overall Score', `${Math.round(results.overallScore * 100)}%`, `${Math.round(results.benchmarkData.industryAverage * 100)}%`, `${results.benchmarkData.percentileRank}th`],
+                        [''],
+                        ['Category Benchmarks'],
+                        ['Category', 'Your Score', 'Industry Average']
+                    ];
+                    
+                    Object.entries(results.categoryScores).forEach(([category, score]) => {
+                        const industryScore = results.benchmarkData.categoryAverages[category] || 0;
+                        benchmarkData.push([category, `${Math.round(score * 100)}%`, `${Math.round(industryScore * 100)}%`]);
+                    });
+                    
+                    const benchmarkWs = XLSX.utils.aoa_to_sheet(benchmarkData);
+                    XLSX.utils.book_append_sheet(wb, benchmarkWs, 'Benchmarks');
+                }
+                
+                // Export to Excel
+                XLSX.writeFile(wb, `berry_consulting_scma_results_${new Date().toISOString().split('T')[0]}.xlsx`);
+            }
+        }
+
+        // PDF Report Generation
+        async function generatePDFReport() {
+            if (!window.lastResults) {
+                alert('No assessment results found. Please complete the assessment first.');
+                return;
+            }
+
+            try {
+                // Show loading indicator
+                const originalText = event.target.textContent;
+                event.target.textContent = '⏳ Generating PDF...';
+                event.target.disabled = true;
+
+                const { jsPDF } = window.jspdf;
+                const pdf = new jsPDF();
+                
+                // Header
+                pdf.setFontSize(20);
+                pdf.setTextColor(44, 62, 80);
+                pdf.text('Berry Consulting', 20, 30);
+                pdf.text('Supply Chain Maturity Assessment', 20, 45);
+                
+                pdf.setFontSize(12);
+                pdf.setTextColor(127, 140, 141);
+                pdf.text('Comprehensive SCM Analysis Report', 20, 55);
+                pdf.text('Generated: ' + new Date().toLocaleDateString(), 20, 65);
+                
+                // Executive Summary
+                pdf.setFontSize(16);
+                pdf.setTextColor(44, 62, 80);
+                pdf.text('Executive Summary', 20, 70);
+                
+                pdf.setFontSize(11);
+                pdf.setTextColor(0, 0, 0);
+                pdf.text('Overall Maturity Score: ' + window.lastResults.overallScore + '/5.0', 20, 85);
+                pdf.text('Maturity Level: ' + window.lastResults.maturityLevel.name, 20, 95);
+                
+                // Wrap text for description
+                const description = pdf.splitTextToSize(window.lastResults.maturityLevel.description, 170);
+                pdf.text(description, 20, 105);
+                
+                // Category Scores with Benchmarking
+                let yPos = 130;
+                pdf.setFontSize(16);
+                pdf.setTextColor(44, 62, 80);
+                pdf.text('Category Performance vs Industry Benchmarks', 20, yPos);
+                
+                yPos += 15;
+                pdf.setFontSize(11);
+                pdf.setTextColor(0, 0, 0);
+                
+                Object.entries(window.lastResults.categoryScores).forEach(([category, score]) => {
+                    const scoreRounded = Math.round(score * 100) / 100;
+                    const industryAvg = getIndustryBenchmark(userData.industry, category, userData.companySize);
+                    const benchmarkStats = getBenchmarkStats(userData.industry, category, userData.companySize);
+                    
+                    pdf.text(category + ': ' + scoreRounded + '/5.0', 20, yPos);
+                    
+                    // Draw your score bar
+                    const barWidth = (scoreRounded / 5) * 60;
+                    pdf.setFillColor(52, 152, 219);
+                    pdf.rect(100, yPos - 4, barWidth, 6, 'F');
+                    
+                    // Draw industry average line
+                    const avgPosition = (industryAvg / 5) * 60;
+                    pdf.setDrawColor(231, 76, 60);
+                    pdf.setLineWidth(2);
+                    pdf.line(100 + avgPosition, yPos - 6, 100 + avgPosition, yPos + 4);
+                    
+                    // Draw background bar
+                    pdf.setDrawColor(236, 240, 241);
+                    pdf.setLineWidth(1);
+                    pdf.rect(100, yPos - 4, 60, 6);
+                    
+                    // Add benchmark info
+                    yPos += 8;
+                    pdf.setFontSize(9);
+                    pdf.setTextColor(127, 140, 141);
+                    pdf.text('Industry avg: ' + Math.round(industryAvg * 100) / 100, 100, yPos);
+                    if (benchmarkStats.count > 0) {
+                        pdf.text('(' + benchmarkStats.count + ' companies)', 140, yPos);
+                    }
+                    
+                    yPos += 10;
+                    pdf.setFontSize(11);
+                    pdf.setTextColor(0, 0, 0);
+                });
+                
+                // Recommendations
+                yPos += 10;
+                pdf.setFontSize(16);
+                pdf.setTextColor(44, 62, 80);
+                pdf.text('Strategic Recommendations', 20, yPos);
+                
+                yPos += 15;
+                pdf.setFontSize(11);
+                pdf.setTextColor(0, 0, 0);
+                
+                window.lastResults.recommendations.forEach((rec, index) => {
+                    const wrappedRec = pdf.splitTextToSize((index + 1) + '. ' + rec, 170);
+                    pdf.text(wrappedRec, 20, yPos);
+                    yPos += wrappedRec.length * 6 + 5;
+                    
+                    // Add new page if needed
+                    if (yPos > 270) {
+                        pdf.addPage();
+                        yPos = 30;
+                    }
+                });
+                
+                // Consulting Package
+                if (yPos > 200) {
+                    pdf.addPage();
+                    yPos = 30;
+                } else {
+                    yPos += 15;
+                }
+                
+                pdf.setFontSize(16);
+                pdf.setTextColor(39, 174, 96);
+                pdf.text('Recommended Consulting Package', 20, yPos);
+                
+                yPos += 15;
+                pdf.setFontSize(11);
+                pdf.setTextColor(0, 0, 0);
+                
+                const consulting = window.lastResults.consultingPackage;
+                pdf.text('Package: ' + consulting.package, 20, yPos);
+                pdf.text('Investment: ' + consulting.priceRange, 20, yPos + 10);
+                pdf.text('Duration: ' + consulting.duration, 20, yPos + 20);
+                
+                yPos += 35;
+                const descWrapped = pdf.splitTextToSize('Description: ' + consulting.description, 170);
+                pdf.text(descWrapped, 20, yPos);
+                
+                yPos += descWrapped.length * 6 + 10;
+                const scopeWrapped = pdf.splitTextToSize('Scope: ' + consulting.scope, 170);
+                pdf.text(scopeWrapped, 20, yPos);
+                
+                yPos += scopeWrapped.length * 6 + 10;
+                const outcomeWrapped = pdf.splitTextToSize('Expected Outcome: ' + consulting.outcome, 170);
+                pdf.text(outcomeWrapped, 20, yPos);
+                
+                // Footer
+                pdf.setFontSize(8);
+                pdf.setTextColor(127, 140, 141);
+                pdf.text('© 2025 Berrycom Supply Chain Maturity Model - Proprietary Assessment', 20, 285);
+                pdf.text('Contact: kenneth@berrycom.co.ke | Berry Consulting', 20, 292);
+                
+                // Save PDF
+                pdf.save('berrycom-scmm-assessment-report.pdf');
+                
+                // Reset button
+                event.target.textContent = originalText;
+                event.target.disabled = false;
+                
+            } catch (error) {
+                console.error('PDF generation error:', error);
+                alert('Error generating PDF report. Please try again.');
+                event.target.textContent = originalText;
+                event.target.disabled = false;
+            }
+        }
+
+        async function requestConsultingQuote(packageType) {
+            const userData = JSON.parse(localStorage.getItem('scma_user_profile') || '{}');
+            
+            // Use BerryPay API integration if available
+            if (window.scmaPaymentManager && window.lastResults) {
+                try {
+                    const consultingData = {
+                        ...userData,
+                        assessmentId: window.lastResults.assessmentId || `scma_${Date.now()}`,
+                        packageType: packageType.toLowerCase(),
+                        maturityLevel: window.lastResults.maturityLevel,
+                        packageDescription: window.lastResults.consultingPackage?.description,
+                        priceRange: window.lastResults.consultingPackage?.priceRange,
+                        paymentMode: 'hybrid'
+                    };
+                    
+                    await window.scmaPaymentManager.processConsultingQuote(consultingData);
+                } catch (error) {
+                    console.error('Quote processing error:', error);
+                    // Fallback to contact information
+                    alert(`🚀 Quote Processing Temporarily Unavailable\n\nPlease contact us directly:\n📧 kenneth@berrycom.co.ke\nSubject: "${packageType} Package Quote Request"\n\nWe'll send you a detailed quote within 24 hours.`);
+                }
+            } else {
+                // Fallback for when API is not available
+                alert(`🚀 Initiating ${packageType} Package Quote Request...\n\nThis will redirect to BerryPay for:\n• Hybrid Checkout (Pay Now/Pay Later)\n• Corporate Billing Portal\n• Secure payment processing\n\nFor now, please contact: kenneth@berrycom.co.ke`);
+            }
+        }
+
+
+
+        // Content Protection Functions
+        function disableContentProtection() {
+            // Disable right-click context menu
+            document.addEventListener('contextmenu', function(e) {
+                e.preventDefault();
+                return false;
+            });
+
+            // Disable keyboard shortcuts for developer tools and copying
+            document.addEventListener('keydown', function(e) {
+                // Disable F12 (Developer Tools)
+                if (e.key === 'F12') {
+                    e.preventDefault();
+                    return false;
+                }
+                
+                // Disable Ctrl+Shift+I (Developer Tools)
+                if (e.ctrlKey && e.shiftKey && e.key === 'I') {
+                    e.preventDefault();
+                    return false;
+                }
+                
+                // Disable Ctrl+Shift+J (Console)
+                if (e.ctrlKey && e.shiftKey && e.key === 'J') {
+                    e.preventDefault();
+                    return false;
+                }
+                
+                // Disable Ctrl+U (View Source)
+                if (e.ctrlKey && e.key === 'u') {
+                    e.preventDefault();
+                    return false;
+                }
+                
+                // Disable Ctrl+A (Select All)
+                if (e.ctrlKey && e.key === 'a') {
+                    e.preventDefault();
+                    return false;
+                }
+                
+                // Disable Ctrl+C (Copy)
+                if (e.ctrlKey && e.key === 'c') {
+                    e.preventDefault();
+                    return false;
+                }
+                
+                // Disable Ctrl+S (Save)
+                if (e.ctrlKey && e.key === 's') {
+                    e.preventDefault();
+                    return false;
+                }
+                
+                // Disable Ctrl+P (Print)
+                if (e.ctrlKey && e.key === 'p') {
+                    e.preventDefault();
+                    return false;
+                }
+            });
+
+            // Disable text selection via mouse
+            document.addEventListener('selectstart', function(e) {
+                e.preventDefault();
+                return false;
+            });
+
+            // Disable drag and drop
+            document.addEventListener('dragstart', function(e) {
+                e.preventDefault();
+                return false;
+            });
+
+            // Clear clipboard periodically (aggressive protection)
+            setInterval(function() {
+                if (navigator.clipboard && navigator.clipboard.writeText) {
+                    navigator.clipboard.writeText('').catch(() => {});
+                }
+            }, 1000);
+
+            // Detect developer tools opening (basic detection)
+            let devtools = {
+                open: false,
+                orientation: null
+            };
+            
+            const threshold = 160;
+            setInterval(function() {
+                if (window.outerHeight - window.innerHeight > threshold || 
+                    window.outerWidth - window.innerWidth > threshold) {
+                    if (!devtools.open) {
+                        devtools.open = true;
+                        alert('⚠️ Content protection active. Developer tools are not permitted.');
+                        // Optional: redirect or close window
+                        window.location.href = 'about:blank';
+                    }
+                }
+            }, 500);
+
+            // Disable print screen (limited effectiveness)
+            document.addEventListener('keyup', function(e) {
+                if (e.key === 'PrintScreen') {
+                    navigator.clipboard.writeText('Content protected - screenshot disabled').catch(() => {});
+                }
+            });
+
+            // Blur content when window loses focus (prevents screenshots)
+            window.addEventListener('blur', function() {
+                document.body.style.filter = 'blur(5px)';
+            });
+            
+            window.addEventListener('focus', function() {
+                document.body.style.filter = 'none';
+            });
+        }
+
+        // User data storage
+        let userData = {};
+        let assessmentDatabase = JSON.parse(localStorage.getItem('scmm_assessments') || '[]');
+
+        // Handle registration form
+        function handleRegistration(event) {
+            event.preventDefault();
+            
+            // Capture user data
+            userData = {
+                email: document.getElementById('userEmail').value,
+                company: document.getElementById('companyName').value,
+                industry: document.getElementById('industry').value,
+                role: document.getElementById('userRole').value,
+                companySize: document.getElementById('companySize').value,
+                revenue: document.getElementById('revenue').value,
+                timestamp: new Date().toISOString(),
+                assessmentId: 'SCMM_' + Date.now(),
+                ipAddress: 'xxx.xxx.xxx.xxx', // Would be captured server-side
+                userAgent: navigator.userAgent
+            };
+            
+            // Hide registration, show assessment
+            document.getElementById('registrationContainer').style.display = 'none';
+            document.getElementById('progressBarContainer').style.display = 'block';
+            document.getElementById('questionContainer').style.display = 'block';
+            
+            // Start assessment
+            loadQuestion();
+            
+            // Optional: Send data to server (for future implementation)
+            console.log('User registered:', userData);
+        }
+
+        // Dynamic Benchmarking System - Built from Assessment Database
+        function calculateDynamicBenchmarks() {
+            const benchmarks = {};
+            const counts = {};
+            
+            // Calculate averages from assessment database
+            assessmentDatabase.forEach(assessment => {
+                if (!assessment.categoryScores || !assessment.industry) return;
+                
+                const industry = assessment.industry;
+                const size = assessment.companySize || 'all';
+                
+                if (!benchmarks[industry]) benchmarks[industry] = {};
+                if (!benchmarks[industry][size]) benchmarks[industry][size] = {};
+                if (!counts[industry]) counts[industry] = {};
+                if (!counts[industry][size]) counts[industry][size] = {};
+                
+                Object.entries(assessment.categoryScores).forEach(([category, score]) => {
+                    if (!benchmarks[industry][size][category]) {
+                        benchmarks[industry][size][category] = 0;
+                        counts[industry][size][category] = 0;
+                    }
+                    benchmarks[industry][size][category] += score;
+                    counts[industry][size][category]++;
+                });
+            });
+            
+            // Convert sums to averages
+            Object.keys(benchmarks).forEach(industry => {
+                Object.keys(benchmarks[industry]).forEach(size => {
+                    Object.keys(benchmarks[industry][size]).forEach(category => {
+                        benchmarks[industry][size][category] = 
+                            benchmarks[industry][size][category] / counts[industry][size][category];
+                    });
+                });
+            });
+            
+            return benchmarks;
+        }
+
+        // Fallback static benchmarks (initial bootstrap data)
+        const staticBenchmarks = {
+            'manufacturing': {
+                'all': {'Planning': 2.8, 'Procurement': 3.1, 'Logistics': 2.9, 'Order-to-Cash': 2.7, 'Technology': 2.5, 'ESG & Compliance': 2.3}
+            },
+            'retail': {
+                'all': {'Planning': 3.2, 'Procurement': 2.7, 'Logistics': 3.4, 'Order-to-Cash': 3.1, 'Technology': 2.8, 'ESG & Compliance': 2.6}
+            },
+            'healthcare': {
+                'all': {'Planning': 2.9, 'Procurement': 3.0, 'Logistics': 2.6, 'Order-to-Cash': 2.8, 'Technology': 2.4, 'ESG & Compliance': 3.2}
+            },
+            'default': {
+                'all': {'Planning': 2.9, 'Procurement': 2.8, 'Logistics': 3.0, 'Order-to-Cash': 2.8, 'Technology': 2.6, 'ESG & Compliance': 2.5}
+            }
+        };
+
+        function getIndustryBenchmark(industry, category, companySize = 'all') {
+            const dynamicBenchmarks = calculateDynamicBenchmarks();
+            
+            // Try dynamic benchmarks first
+            if (dynamicBenchmarks[industry] && 
+                dynamicBenchmarks[industry][companySize] && 
+                dynamicBenchmarks[industry][companySize][category]) {
+                return dynamicBenchmarks[industry][companySize][category];
+            }
+            
+            // Fallback to static benchmarks
+            const benchmarks = staticBenchmarks[industry] || staticBenchmarks['default'];
+            return benchmarks['all'][category] || 2.8;
+        }
+
+        function getBenchmarkStats(industry, category, companySize = 'all') {
+            const relevantAssessments = assessmentDatabase.filter(a => 
+                a.industry === industry && 
+                (companySize === 'all' || a.companySize === companySize) &&
+                a.categoryScores && a.categoryScores[category]
+            );
+            
+            if (relevantAssessments.length < 3) {
+                return {
+                    count: 0,
+                    percentile: null,
+                    reliability: 'low'
+                };
+            }
+            
+            const scores = relevantAssessments.map(a => a.categoryScores[category]).sort((a, b) => a - b);
+            const currentScore = scores[scores.length - 1]; // Most recent score
+            const percentileRank = (scores.findIndex(s => s >= currentScore) + 1) / scores.length * 100;
+            
+            return {
+                count: relevantAssessments.length,
+                percentile: Math.round(percentileRank),
+                reliability: relevantAssessments.length >= 10 ? 'high' : 'medium'
+            };
+        }
+
+        // Initialize the application
+        document.addEventListener('DOMContentLoaded', function() {
+            // Set up registration form handler
+            document.getElementById('registrationForm').addEventListener('submit', handleRegistration);
+            disableContentProtection(); // Enable content protection
+        });
+    </script>
+</body>
+</html>

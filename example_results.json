@@ -1,0 +1,18 @@
+{
+  "overall_score": 2.48,
+  "maturity_level": "MANAGED",
+  "category_scores": {
+    "Version Control": 3.88,
+    "Build Management": 1.9,
+    "Release Management": 2.94,
+    "Configuration Management": 2.92,
+    "Quality Assurance": 1.96,
+    "Documentation": 1.28
+  },
+  "recommendations": [
+    "Improve SCM documentation and implement change traceability",
+    "Automate build processes and implement continuous integration",
+    "Integrate automated testing and quality checks into SCM workflows",
+    "Focus on standardizing and documenting SCM processes"
+  ]
+}
