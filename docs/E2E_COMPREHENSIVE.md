@@ -1,9 +1,30 @@
 # SCM Maturity Assessment — Comprehensive E2E Test Plan
 
-**Last updated:** 2026-06-12  
+**Last updated:** 2026-06-14
+
+## Go-Live Certification (2026-06-14) — APPROVED
+
+Enterprise audit **92/100**; all 9 workstreams PASS. Program: `../../planning-module-berry/docs/certification/GO_LIVE_CERTIFICATION_PROGRAM.md`. Workspace index: `../../planning-module-berry/docs/E2E_CROSS_REPO_INDEX.md` § 2026-06-14.
+
+| Gate | Command |
+|------|---------|
+| Full program | `berry-platform-runtime/scripts/run-go-live-certification-program.ps1` |
+| ERP live (mock sandbox) | `provision-mock-erp-creds.ps1` then `certify-erp-live.ps1` |
+| 24h soak | `certify-soak-24h.ps1 -ValidateOnly` |
+| Platform Core only | `certify-platform-core-only.ps1` |
+
+## IAM retirement and ERP volume closure (2026-06-14)
+
+| Gate | Status | Command |
+|------|--------|---------|
+| IAM retirement (IAM stopped) | **PASS** | `berry-platform-runtime/scripts/certify-iam-retirement.ps1` |
+| ERP volume 100-100k records | **PASS** (mock sandbox) | `certify-erp-volume.ps1` |
+| UAT evidence capture | **CAPTURED** | `capture-customer-uat-evidence.ps1` |
+
+Evidence: `planning-module-berry/docs/certification/sap/evidence/` · Workspace hub: `berry-enterprise-docs/indexes/E2E_INDEX.md`
 **Repo:** `C:\scm-maturity`  
 **Platform Core hub:** `berry-platform-core/E2E_RUNBOOK.md` (standalone tool; no Platform Core wiring)  
-**Workspace index:** `planning-module-berry/docs/E2E_CROSS_REPO_INDEX.md` § 2026-06-12  
+**Workspace index:** `planning-module-berry/docs/E2E_CROSS_REPO_INDEX.md` § 2026-06-14  
 **Quick start:** [E2E_RUNBOOK.md](./E2E_RUNBOOK.md)  
 **Architecture:** [E2E_SYSTEM_DOCUMENTATION.md](./E2E_SYSTEM_DOCUMENTATION.md)
 

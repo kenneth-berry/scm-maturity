@@ -1,12 +1,12 @@
 # SCM Maturity Assessment — E2E System Documentation
 
 **Product:** Berry Consulting Supply Chain Maturity Assessment (SCMA / SCMM)  
-**Last updated:** 2026-06-12  
+**Last updated:** 2026-06-14
 **Status:** Standalone tool — web + CLI production-ready; BerryPay integration partial (client + webhook stub)
 
 ## Platform Core hub (2026-06-12)
 
-SCM Maturity is standalone (no `PLATFORM_CORE_URL`). For Berry platform E2E, start `berry-platform-core` first per `planning-module-berry/docs/E2E_CROSS_REPO_INDEX.md` § 2026-06-12.
+SCM Maturity is standalone (no `PLATFORM_CORE_URL`). For Berry platform E2E, start `berry-platform-core` first per `planning-module-berry/docs/E2E_CROSS_REPO_INDEX.md` § 2026-06-14.
 
 ---
 
@@ -192,3 +192,4 @@ See **BERRYPAY_INTEGRATION.md** for API contract.
 | Logistics OTIF (Q12 self-assessment context) | `berry-logistics/docs/E2E_2026-05-19_OTIF_DRILLDOWN_TREND_CHARTS.md` |
 | Planning / WMS (inventory questions) | `planning-module-berry/docs/E2E_2026-05-19_PLANNING_HOME_STOCK_COVER.md` |
 | Workspace index | `planning-module-berry/docs/E2E_CROSS_REPO_INDEX.md` |
+
