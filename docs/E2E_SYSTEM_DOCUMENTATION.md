@@ -1,7 +1,12 @@
 # SCM Maturity Assessment — E2E System Documentation
 
 **Product:** Berry Consulting Supply Chain Maturity Assessment (SCMA / SCMM)  
-**Last updated:** 2026-06-14
+**Last updated:** 2026-07-12
+
+## Cross-repo E2E alignment update (2026-07-12) — EIIP scale (Planning)
+
+Berry Planning Inventory Intelligence scale cert **PASS** at 10k + 100k. SCMA remains standalone (no contract change). Workspace hub: `planning-module-berry/docs/E2E_CROSS_REPO_INDEX.md` § *EIIP scale — 10k + 100k (2026-07-12)*.
+
 **Status:** Standalone tool — web + CLI production-ready; BerryPay integration partial (client + webhook stub)
 
 ## Platform Core hub (2026-06-12)
@@ -192,4 +197,3 @@ See **BERRYPAY_INTEGRATION.md** for API contract.
 | Logistics OTIF (Q12 self-assessment context) | `berry-logistics/docs/E2E_2026-05-19_OTIF_DRILLDOWN_TREND_CHARTS.md` |
 | Planning / WMS (inventory questions) | `planning-module-berry/docs/E2E_2026-05-19_PLANNING_HOME_STOCK_COVER.md` |
 | Workspace index | `planning-module-berry/docs/E2E_CROSS_REPO_INDEX.md` |
-
