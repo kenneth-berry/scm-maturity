@@ -1,9 +1,13 @@
 # SCM Maturity Assessment — E2E Documentation Index
 
 **Repo:** `scm-maturity` (Berry Consulting Supply Chain Maturity Assessment / SCMA)  
-**Last updated:** 2026-07-12  
+**Last updated:** 2026-08-18
 
-## EIIP scale — Planning hub (2026-07-12)
+## IAM retirement alignment (2026-08-18)
+
+SCMA is standalone. Berry platform E2E uses Platform Core only — do not start `iam-api` `:3020`. Hub: `planning-module-berry/docs/E2E_CROSS_REPO_INDEX.md` § *2026-08-18 BEASIPP L1*. Canonical: `planning-module-berry/docs/E2E_2026-08-03_IAM_RETIREMENT_PLATFORM_CORE_ONLY.md`.
+
+## EIIP scale — Planning hub (2026-07-12))
 
 Planning Inventory Intelligence **10k + 100k PASS** (`financeHubMode=SIMULATED`). SCMA unchanged. Hub: `planning-module-berry/docs/E2E_CROSS_REPO_INDEX.md` § *EIIP scale — 10k + 100k (2026-07-12)*.
 

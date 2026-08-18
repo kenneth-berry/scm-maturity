@@ -1,6 +1,10 @@
 # SCM Maturity Assessment — Comprehensive E2E Test Plan
 
-**Last updated:** 2026-06-14
+**Last updated:** 2026-08-18
+
+## IAM retirement alignment (2026-08-18)
+
+SCMA remains standalone. Any Berry platform auth uses Platform Core only — do not require `iam-api` `:3020`. Canonical: `planning-module-berry/docs/E2E_2026-08-03_IAM_RETIREMENT_PLATFORM_CORE_ONLY.md`.
 
 ## Go-Live Certification (2026-06-14) — APPROVED
 

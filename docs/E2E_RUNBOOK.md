@@ -1,6 +1,10 @@
 # SCM Maturity Assessment — E2E Runbook
 
-**Last updated:** 2026-06-14
+**Last updated:** 2026-08-18
+
+## IAM retirement alignment (2026-08-18)
+
+Do **not** start `iam-api` for Berry platform E2E. Details: [`E2E_SYSTEM_DOCUMENTATION.md`](./E2E_SYSTEM_DOCUMENTATION.md) § *2026-08-18*.
 
 ## Go-Live Certification (2026-06-14) — APPROVED
 

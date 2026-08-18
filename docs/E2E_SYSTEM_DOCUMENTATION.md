@@ -1,7 +1,14 @@
 # SCM Maturity Assessment — E2E System Documentation
 
 **Product:** Berry Consulting Supply Chain Maturity Assessment (SCMA / SCMM)  
-**Last updated:** 2026-07-12
+**Last updated:** 2026-08-18
+
+## IAM retirement · Platform Core sole IdP (alignment) (2026-08-18)
+
+- No uncommitted product/security/e2e-test delta in this working tree. SCMA remains standalone.
+- Treat Platform Core as sole IdP for any auth-bearing Berry platform flows; do not require `iam-api` `:3020`.
+- Canonical: `planning-module-berry/docs/E2E_2026-08-03_IAM_RETIREMENT_PLATFORM_CORE_ONLY.md`.
+- Cross-repo BEASIPP certify remains on Planning hub (`npm run certify:beasipp`) — [`E2E_2026-08-18_BEASIPP_L1_PRODUCT_API_HARDENING.md`](../../planning-module-berry/docs/E2E_2026-08-18_BEASIPP_L1_PRODUCT_API_HARDENING.md).
 
 ## Cross-repo E2E alignment update (2026-07-12) — EIIP scale (Planning)
 
