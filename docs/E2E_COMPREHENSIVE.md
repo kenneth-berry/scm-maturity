@@ -1,6 +1,10 @@
 # SCM Maturity Assessment — Comprehensive E2E Test Plan
 
-**Last updated:** 2026-08-18
+**Last updated:** 2026-09-16
+
+## Fleet E2E catch-up (2026-09-16) — Planning hub v1.90.0
+
+SCMA remains standalone. Canonical: `planning-module-berry/docs/E2E_2026-09-16_FLEET_CATCHUP_NOS_GEOGRAPHY.md`.
 
 ## IAM retirement alignment (2026-08-18)
 

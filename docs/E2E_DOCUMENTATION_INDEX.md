@@ -1,7 +1,11 @@
 # SCM Maturity Assessment — E2E Documentation Index
 
 **Repo:** `scm-maturity` (Berry Consulting Supply Chain Maturity Assessment / SCMA)  
-**Last updated:** 2026-08-18
+**Last updated:** 2026-09-16
+
+## Fleet E2E catch-up (2026-09-16)
+
+SCMA is standalone. Berry platform E2E uses Platform Core only — do not start `iam-api` `:3020`. Hub: `planning-module-berry/docs/E2E_CROSS_REPO_INDEX.md` § *2026-09-16*. Canonical: `planning-module-berry/docs/E2E_2026-09-16_FLEET_CATCHUP_NOS_GEOGRAPHY.md`.
 
 ## IAM retirement alignment (2026-08-18)
 

@@ -1,6 +1,10 @@
 # SCM Maturity Assessment — E2E Runbook
 
-**Last updated:** 2026-08-18
+**Last updated:** 2026-09-16
+
+## 2026-09-16 — Fleet E2E catch-up
+
+Do **not** start `iam-api` for Berry platform E2E. Hub: `planning-module-berry/docs/E2E_2026-09-16_FLEET_CATCHUP_NOS_GEOGRAPHY.md`.
 
 ## IAM retirement alignment (2026-08-18)
 
